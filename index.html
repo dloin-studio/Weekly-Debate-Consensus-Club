@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Entry Form — The Weekly Debate &amp; Consensus Club</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,900&family=Source+Serif+4:ital,wght@0,400;0,500;0,600;1,400&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- Supabase JS v2 Client Library -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+  :root{
+    --paper: rgb(248, 250, 252);
+    --paper-raised: rgb(204, 224, 255);
+    --ink: #1c1b19;
+    --ink-soft: #0c2048;
+    --ink-faint: #000000;
+    --rule: #96add77d;
+    --for-color: #44bf7f;
+    --for-color-soft: #DCE4DA;
+    --against-color: #ee4a4a;
+    --against-color-soft: #f69e8d7d;
+    --gold: #000000;
+    --gold-soft: #2172ff45;
+    --danger: #742e2e;
+    --paper-shadow: rgba(34, 30, 23, 0.10);
+  }
+  
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+
+  body{
+    background: var(--paper);
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(34,30,23,0.045) 1px, transparent 0);
+    background-size: 22px 22px;
+    color: var(--ink);
+    font-family: 'Source Serif 4', Georgia, serif;
+    min-height: 100vh;
+    padding: 48px 20px 80px;
+  }
+
+  .sheet{
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  /* ---------- Masthead ---------- */
+  .eyebrow{
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 11.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom: 10px;
+  }
+  .eyebrow .dot{ width:6px; height:6px; border-radius:50%; background:var(--gold); display:inline-block; }
+
+  .masthead{
+    font-family:'Fraunces', serif;
+    font-weight: 700;
+    font-size: clamp(28px, 5vw, 38px);
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    margin: 0 0 18px;
+  }
+
+  .rule{
+    border:none;
+    border-top: 1px solid var(--rule);
+    margin: 20px 0;
+  }
+  .rule.thick{ border-top-width: 2px; border-top-color: var(--ink); opacity:0.85; }
+
+  /* ---------- Tabs ---------- */
+  .tabs{
+    display:flex;
+    gap: 4px;
+    margin-bottom: 28px;
+    font-family:'Space Grotesk', sans-serif;
+  }
+  .tab-btn{
+    flex:1;
+    background: transparent;
+    border: 1px solid var(--ink);
+    color: var(--ink);
+    padding: 11px 14px;
+    font-family: inherit;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all .15s ease;
+  }
+  .tab-btn:first-child{ border-right: none; }
+  .tab-btn.active{ background: var(--ink); color: var(--paper-raised); }
+  .tab-btn:not(.active):hover{ background: rgba(34,30,23,0.06); }
+
+  .view{ display:none; }
+  .view.active{ display:block; }
+
+  /* ---------- Topic card ---------- */
+  .topic-card{
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    padding: 22px 24px;
+    margin-bottom: 26px;
+    box-shadow: 0 1px 0 var(--paper-shadow);
+  }
+  .topic-week{
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+  .topic-headline{
+    font-family:'Fraunces', serif;
+    font-weight: 600;
+    font-size: 22px;
+    line-height: 1.25;
+    margin: 0 0 8px;
+  }
+  .topic-framing{
+    font-style: italic;
+    color: var(--ink-soft);
+    font-size: 15px;
+    line-height: 1.5;
+    margin: 0 0 14px;
+  }
+  .stance-defs{
+    display:flex;
+    flex-wrap:wrap;
+    gap: 8px;
+  }
+  .stance-chip{
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.03em;
+    padding: 5px 11px;
+    border: 1px solid var(--ink);
+    color: var(--ink);
+  }
+
+  /* ---------- Section labels ---------- */
+  .section-label{
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 30px 0 14px;
+    display:flex;
+    align-items:center;
+    gap: 10px;
+  }
+  .section-label::after{
+    content:'';
+    flex:1;
+    height:1px;
+    background: var(--rule);
+  }
+
+  /* ---------- Form fields ---------- */
+  .field{ margin-bottom: 18px; }
+  .field-label{
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 7px;
+    display:flex;
+    justify-content: space-between;
+  }
+  input[type=text]{
+    width:100%;
+    font-family:'Source Serif 4', serif;
+    font-size: 15px;
+    padding: 11px 12px;
+    border: 1px solid var(--rule);
+    background: #fff;
+    color: var(--ink);
+  }
+  input[type=text]:disabled{ background: #eae6d8; color: var(--ink-faint); }
+  input[type=text]:focus, textarea:focus, .stance-pill:focus-visible, .tab-btn:focus-visible{
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+  }
+
+  .anon-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-top: 9px;
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+  }
+  .anon-row input{ width:15px; height:15px; accent-color: var(--ink); }
+
+  .stance-pills{
+    display:flex;
+    gap:10px;
+    flex-wrap: wrap;
+  }
+  .stance-pill{
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 13.5px;
+    padding: 10px 18px;
+    border: 1.5px solid var(--ink);
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+    transition: all .12s ease;
+  }
+  .stance-pill:hover{ background: rgba(34,30,23,0.06); }
+  .stance-pill.selected{ background: var(--ink); color: var(--paper-raised); }
+
+  textarea#essay{
+    width:100%;
+    min-height: 260px;
+    font-family:'Source Serif 4', serif;
+    font-size: 15.5px;
+    line-height: 1.65;
+    padding: 16px;
+    border: 1px solid var(--rule);
+    background: #fff;
+    color: var(--ink);
+    resize: vertical;
+  }
+
+  /* ---------- Word meter ---------- */
+  .meter-wrap{ margin-top: 12px; }
+  .meter-readout{
+    display:flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family:'Space Grotesk', sans-serif;
+    margin-bottom: 6px;
+  }
+  .meter-count{
+    font-size: 20px;
+    font-weight: 600;
+  }
+  .meter-status{
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .meter-track{
+    position: relative;
+    height: 10px;
+    background: var(--against-color-soft);
+    border: 1px solid var(--ink);
+  }
+  .meter-zone-ok{
+    position:absolute;
+    top:0; bottom:0;
+    left: 60%;
+    width: 20%;
+    background: var(--for-color-soft);
+    border-left: 1px solid var(--ink-faint);
+    border-right: 1px solid var(--ink-faint);
+  }
+  .meter-fill{
+    position:absolute;
+    top:0; bottom:0; left:0;
+    width: 0%;
+    background: var(--gold);
+    transition: width .15s ease, background .15s ease;
+  }
+  .meter-marks{
+    display:flex;
+    justify-content: space-between;
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 10.5px;
+    color: var(--ink-faint);
+    margin-top: 4px;
+  }
+
+  /* ---------- Submit ---------- */
+  .submit-row{
+    display:flex;
+    align-items:center;
+    gap: 16px;
+    margin-top: 26px;
+  }
+  .submit-btn{
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 14px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    background: var(--ink);
+    color: var(--paper-raised);
+    border: none;
+    padding: 14px 26px;
+    cursor: pointer;
+    transition: background .15s ease, opacity .15s ease;
+  }
+  .submit-btn:hover:not(:disabled){ background: #3a352a; }
+  .submit-btn:disabled{ opacity: 0.35; cursor: not-allowed; }
+  .submit-hint{
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 12px;
+    color: var(--ink-faint);
+  }
+
+  .confirm-box{
+    margin-top: 22px;
+    padding: 16px 18px;
+    border: 1px solid var(--for-color);
+    background: var(--for-color-soft);
+    color: var(--for-color);
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 13px;
+    display:none;
+  }
+  .confirm-box.show{ display:block; }
+
+  .error-box{
+    margin-top: 14px;
+    padding: 12px 16px;
+    border: 1px solid var(--against-color);
+    background: var(--against-color-soft);
+    color: var(--against-color);
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 12.5px;
+    display:none;
+  }
+  .error-box.show{ display:block; }
+
+  .footnote{
+    margin-top: 40px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    border-top: 1px solid var(--rule);
+    padding-top: 16px;
+  }
+  .footnote b{ color: var(--ink); }
+
+  /* ---------- Entry log & Voting ---------- */
+  .log-summary{
+    display:flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 22px;
+    font-family:'Space Grotesk', sans-serif;
+  }
+  .log-stat{
+    border: 1px solid var(--rule);
+    background: var(--paper-raised);
+    padding: 10px 16px;
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+  .log-stat b{
+    display:block;
+    font-size: 20px;
+    color: var(--ink);
+    font-family: 'Fraunces', serif;
+  }
+
+  .stance-group{ margin-bottom: 30px; }
+  .stance-group-title{
+    font-family:'Fraunces', serif;
+    font-weight: 600;
+    font-size: 18px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .case-file{
+    border: 1px solid var(--rule);
+    background: var(--paper-raised);
+    margin-bottom: 10px;
+    padding: 14px 16px;
+    cursor: pointer;
+  }
+  .case-file-top{
+    display:flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+  }
+  .case-file-left{
+    display:flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .case-file-author{ color: var(--ink); font-weight: 600; }
+  .case-file-meta{
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 11.5px;
+    color: var(--ink-soft);
+  }
+  
+  /* Highlighted Votes Badge */
+  .case-file-votes {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    color: var(--gold);
+    background: var(--gold-soft);
+    padding: 1px 6px;
+    border-radius: 2px;
+    display: inline-block;
+  }
+
+  /* Vote Button Styles */
+  .vote-btn{
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: var(--ink);
+    color: var(--paper-raised);
+    border: none;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .vote-btn:hover:not(:disabled) { background: #3a352a; }
+  .vote-btn:disabled { background: var(--rule); color: var(--ink-soft); cursor: not-allowed; }
+  .vote-btn.voted { background: var(--gold); color: white; }
+
+  .case-file-body{
+    display:none;
+    margin-top: 12px;
+    font-size: 14.5px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    border-top: 1px dashed var(--rule);
+    padding-top: 12px;
+  }
+  .case-file.open .case-file-body{ display:block; }
+
+  .empty-log{
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 13px;
+    color: var(--ink-faint);
+    padding: 30px 0;
+    text-align: center;
+    border: 1px dashed var(--rule);
+  }
+
+  .loading-line{
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 12px;
+    color: var(--ink-faint);
+    margin-bottom: 14px;
+  }
+
+  @media (max-width: 480px){
+    .stance-pills{ flex-direction: column; }
+    .stance-pill{ text-align:center; }
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="eyebrow"><span class="dot"></span>Involeap &nbsp;·&nbsp; Weekly Debate &amp; Consensus Club</div>
+  <h1 class="masthead">Entry Form</h1>
+
+  <div class="tabs">
+    <button class="tab-btn active" id="tab-submit-btn" onclick="switchTab('submit')">Submit an Essay</button>
+    <button class="tab-btn" id="tab-log-btn" onclick="switchTab('log')">Entry Log</button>
+  </div>
+
+  <!-- ===================== SUBMIT VIEW ===================== -->
+  <div class="view active" id="view-submit">
+
+    <div class="topic-card">
+      <div class="topic-week" id="topic-week">WEEK — LOADING</div>
+      <h2 class="topic-headline" id="topic-headline">Loading this week's topic…</h2>
+      <p class="topic-framing" id="topic-framing"></p>
+      <div class="stance-defs" id="stance-defs"></div>
+    </div>
+
+    <div class="section-label">01 — Your details</div>
+    <div class="field">
+      <div class="field-label">Full name</div>
+      <input type="text" id="author-name" placeholder="Jamie Rivera" />
+      <div class="anon-row">
+        <input type="checkbox" id="anon-check" onchange="toggleAnon()" />
+        <label for="anon-check">Submit anonymously (judging is blind either way)</label>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label">Stance you're arguing</div>
+      <div class="stance-pills" id="stance-pills"></div>
+    </div>
+
+    <div class="section-label">02 — Your essay</div>
+    <div class="field">
+      <textarea id="essay" placeholder="State your position plainly in the first few lines, then build your case…" oninput="updateMeter()"></textarea>
+      <div class="meter-wrap">
+        <div class="meter-readout">
+          <span class="meter-count" id="meter-count">0 words</span>
+          <span class="meter-status" id="meter-status">— start writing</span>
+        </div>
+        <div class="meter-track">
+          <div class="meter-zone-ok"></div>
+          <div class="meter-fill" id="meter-fill"></div>
+        </div>
+        <div class="meter-marks">
+          <span>0</span><span>300 — in range — 400</span><span>500+</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="submit-row">
+      <button class="submit-btn" id="submit-btn" disabled onclick="submitEssay()">Submit entry</button>
+      <span class="submit-hint">One submission per person per topic · deadline Thursday</span>
+    </div>
+
+    <div class="error-box" id="error-box"></div>
+    <div class="confirm-box" id="confirm-box"></div>
+
+    <p class="footnote">
+      <b>Reminder:</b> essays run 300–400 words. Voters are judging which argument is more convincing, not which one they agree with — write to persuade an undecided reader, not to preach to your own side.
+    </p>
+  </div>
+
+  <!-- ===================== LOG VIEW ===================== -->
+  <div class="view" id="view-log">
+    <div class="loading-line" id="log-loading">Reading the entry log…</div>
+    <div class="log-summary" id="log-summary"></div>
+    <div id="log-groups"></div>
+    <p class="footnote">
+      Names are shown here for record-keeping only. Per <b>Section 3</b> of the working plan, judges must read entries blind — hide names again before scoring.
+    </p>
+  </div>
+
+</div>
+
+<script>
+  const SUPABASE_URL = "https://fevvbxdxnqaltrhakrmu.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZldnZieGR4bnFhbHRyaGFrcm11Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY0ODEwNDQsImV4cCI6MjEwMjA1NzA0NH0.BC15V81UR3L9HnbYToo4LWto52_HP5kY9gO5mpYGhQA";
+
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const DEFAULT_CONFIG = {
+    weekLabel: "Week 01",
+    headline: "Topic to be announced — check back Monday",
+    framing: "The topic curator will post this week's neutral framing and stances here.",
+    stances: ["For", "Against"]
+  };
+
+  let config = null;
+  let selectedStance = null;
+
+  const getMySubmissionId = () => localStorage.getItem('mySubmissionId');
+  const setMySubmissionId = (id) => localStorage.setItem('mySubmissionId', id);
+  const getMyVotes = () => JSON.parse(localStorage.getItem('myVotes') || '[]');
+  const addMyVote = (id) => {
+    const votes = getMyVotes();
+    if (!votes.includes(id)) {
+      votes.push(id);
+      localStorage.setItem('myVotes', JSON.stringify(votes));
+    }
+  };
+
+  function escapeHtml(str){
+    const d = document.createElement('div');
+    d.innerText = str;
+    return d.innerHTML;
+  }
+
+  async function loadConfig(){
+    try {
+      const { data, error } = await db
+        .from('weeks')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error || !data) {
+        config = DEFAULT_CONFIG;
+      } else {
+        config = {
+          weekLabel: data.week_label,
+          headline: data.headline,
+          framing: data.framing || '',
+          stances: Array.isArray(data.stances) ? data.stances : JSON.parse(data.stances)
+        };
+      }
+    } catch (e) {
+      console.error('Error loading config:', e);
+      config = DEFAULT_CONFIG;
+    }
+    renderTopic();
+  }
+
+  function renderTopic(){
+    document.getElementById('topic-week').textContent = config.weekLabel.toUpperCase();
+    document.getElementById('topic-headline').textContent = config.headline;
+    document.getElementById('topic-framing').textContent = config.framing || '';
+
+    const defsEl = document.getElementById('stance-defs');
+    defsEl.innerHTML = config.stances.map(s => `<span class="stance-chip">${escapeHtml(s)}</span>`).join('');
+
+    const pillsEl = document.getElementById('stance-pills');
+    pillsEl.innerHTML = config.stances.map(s =>
+      `<button type="button" class="stance-pill" data-stance="${escapeHtml(s)}" onclick="selectStance('${escapeHtml(s).replace(/'/g,"\\'")}')">${escapeHtml(s)}</button>`
+    ).join('');
+    selectedStance = null;
+    validateForm();
+  }
+
+  function toggleAnon(){
+    const checked = document.getElementById('anon-check').checked;
+    const nameField = document.getElementById('author-name');
+    nameField.disabled = checked;
+    if (checked) nameField.value = '';
+  }
+
+  function selectStance(stance){
+    selectedStance = stance;
+    document.querySelectorAll('.stance-pill').forEach(btn => {
+      btn.classList.toggle('selected', btn.dataset.stance === stance);
+    });
+    validateForm();
+  }
+
+  function wordCount(text){
+    const trimmed = text.trim();
+    if (!trimmed) return 0;
+    return trimmed.split(/\s+/).length;
+  }
+
+  function updateMeter(){
+    const text = document.getElementById('essay').value;
+    const count = wordCount(text);
+    document.getElementById('meter-count').textContent = count + ' word' + (count === 1 ? '' : 's');
+
+    const statusEl = document.getElementById('meter-status');
+    const fillEl = document.getElementById('meter-fill');
+    const pct = Math.min((count / 500) * 100, 100);
+    fillEl.style.width = pct + '%';
+
+    if (count === 0){
+      statusEl.textContent = '— start writing';
+      statusEl.style.color = 'var(--ink-faint)';
+      fillEl.style.background = 'var(--ink-faint)';
+    } else if (count < 300){
+      statusEl.textContent = `${300 - count} to go`;
+      statusEl.style.color = 'var(--gold)';
+      fillEl.style.background = 'var(--gold)';
+    } else if (count <= 400){
+      statusEl.textContent = 'in range';
+      statusEl.style.color = 'var(--for-color)';
+      fillEl.style.background = 'var(--for-color)';
+    } else {
+      statusEl.textContent = `${count - 400} over`;
+      statusEl.style.color = 'var(--against-color)';
+      fillEl.style.background = 'var(--against-color)';
+    }
+    validateForm();
+  }
+
+  function validateForm(){
+    const count = wordCount(document.getElementById('essay').value);
+    const inRange = count >= 300 && count <= 400;
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = !(inRange && selectedStance);
+  }
+
+  function showError(msg){
+    const box = document.getElementById('error-box');
+    box.textContent = msg;
+    box.classList.add('show');
+    setTimeout(() => box.classList.remove('show'), 5000);
+  }
+
+  async function submitEssay(){
+    const essayText = document.getElementById('essay').value.trim();
+    const count = wordCount(essayText);
+    if (!selectedStance || count < 300 || count > 400) {
+      showError('Check your stance selection and word count before submitting.');
+      return;
+    }
+
+    const anon = document.getElementById('anon-check').checked;
+    const nameRaw = document.getElementById('author-name').value.trim();
+    const author = anon ? 'Anonymous' : (nameRaw || 'Anonymous');
+
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Submitting…';
+
+    try {
+      const { data, error } = await db
+        .from('submissions')
+        .insert([{
+          week_label: config.weekLabel,
+          stance: selectedStance,
+          essay: essayText,
+          word_count: count,
+          author: author,
+          anonymous: anon,
+          votes: 0
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setMySubmissionId(data.id);
+
+      const confirmBox = document.getElementById('confirm-box');
+      confirmBox.textContent = `Entry received for "${selectedStance}" — ${count} words, timestamped ${new Date(data.created_at).toLocaleString()}.`;
+      confirmBox.classList.add('show');
+
+      document.getElementById('essay').value = '';
+      document.getElementById('author-name').value = '';
+      document.getElementById('anon-check').checked = false;
+      toggleAnon();
+      selectedStance = null;
+      document.querySelectorAll('.stance-pill').forEach(b => b.classList.remove('selected'));
+      updateMeter();
+    } catch (e) {
+      console.error('Submission error:', e);
+      showError('Something went wrong saving your entry — please check your connection and try again.');
+    } finally {
+      btn.textContent = 'Submit entry';
+      validateForm();
+    }
+  }
+
+  async function castVote(entryId, currentVotes) {
+    const myVotes = getMyVotes();
+    if (myVotes.length >= 2) return;
+    
+    try {
+      const { error } = await db
+        .from('submissions')
+        .update({ votes: currentVotes + 1 })
+        .eq('id', entryId);
+
+      if (error) throw error;
+
+      addMyVote(entryId);
+      loadLog();
+    } catch (e) {
+      console.error("Voting error:", e);
+      alert("Failed to cast vote. Check your connection.");
+    }
+  }
+
+  async function loadLog(){
+    const loadingEl = document.getElementById('log-loading');
+    const summaryEl = document.getElementById('log-summary');
+    const groupsEl = document.getElementById('log-groups');
+    loadingEl.style.display = 'block';
+    summaryEl.innerHTML = '';
+    groupsEl.innerHTML = '';
+
+    try {
+      const { data: entries, error } = await db
+        .from('submissions')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      loadingEl.style.display = 'none';
+
+      const current = (entries || []).filter(e => e.week_label === config.weekLabel);
+      const shown = current.length ? current : (entries || []);
+
+      if (!shown.length) {
+        groupsEl.innerHTML = '<div class="empty-log">No entries yet for ' + escapeHtml(config.weekLabel) + '. The log fills in as the writing window progresses.</div>';
+        return;
+      }
+
+      summaryEl.innerHTML = `
+        <div class="log-stat"><b>${shown.length}</b>total entries</div>
+        ${config.stances.map(s => {
+          const n = shown.filter(e => e.stance === s).length;
+          return `<div class="log-stat"><b>${n}</b>${escapeHtml(s)}</div>`;
+        }).join('')}
+      `;
+
+      const groups = {};
+      shown.forEach(e => {
+        if (!groups[e.stance]) groups[e.stance] = [];
+        groups[e.stance].push(e);
+      });
+
+      // Sort entries within each stance group by vote count (highest first)
+      Object.keys(groups).forEach(stance => {
+        groups[stance].sort((a, b) => (b.votes || 0) - (a.votes || 0));
+      });
+
+      const mySubId = getMySubmissionId();
+      const myVotes = getMyVotes();
+      const hasReachedLimit = myVotes.length >= 2;
+
+      groupsEl.innerHTML = Object.keys(groups).map(stance => `
+        <div class="stance-group">
+          <div class="stance-group-title">${escapeHtml(stance)}</div>
+          ${groups[stance].map(e => {
+            
+            let isMine = (e.id == mySubId);
+            let hasVotedForThis = myVotes.includes(e.id);
+            let votesCount = e.votes || 0;
+            
+            let btnHtml = '';
+            if (isMine) {
+              btnHtml = `<button class="vote-btn" disabled>Your Essay</button>`;
+            } else if (hasVotedForThis) {
+              btnHtml = `<button class="vote-btn voted" disabled>Voted</button>`;
+            } else if (hasReachedLimit) {
+              btnHtml = `<button class="vote-btn" disabled>Limit Reached</button>`;
+            } else {
+              btnHtml = `<button class="vote-btn" onclick="event.stopPropagation(); castVote('${e.id}', ${votesCount})">Vote</button>`;
+            }
+
+            return `
+            <div class="case-file" onclick="this.classList.toggle('open')">
+              <div class="case-file-top">
+                <div class="case-file-left">
+                  <span class="case-file-author">${escapeHtml(e.author)}</span>
+                  <span class="case-file-meta">
+                    ${e.word_count} words · <span class="case-file-votes">${votesCount} vote${votesCount === 1 ? '' : 's'}</span> · ${new Date(e.created_at).toLocaleString()}
+                  </span>
+                </div>
+                ${btnHtml}
+              </div>
+              <div class="case-file-body">${escapeHtml(e.essay)}</div>
+            </div>
+            `;
+          }).join('')}
+        </div>
+      `).join('');
+
+    } catch (e) {
+      console.error('Error loading log:', e);
+      loadingEl.textContent = 'Could not load the entry log — please verify database connectivity and try again.';
+    }
+  }
+
+  function switchTab(which){
+    document.getElementById('tab-submit-btn').classList.toggle('active', which === 'submit');
+    document.getElementById('tab-log-btn').classList.toggle('active', which === 'log');
+    document.getElementById('view-submit').classList.toggle('active', which === 'submit');
+    document.getElementById('view-log').classList.toggle('active', which === 'log');
+    if (which === 'log') loadLog();
+  }
+
+  loadConfig();
+</script>
+</body>
+</html>
