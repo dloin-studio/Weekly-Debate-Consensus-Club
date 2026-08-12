@@ -516,7 +516,7 @@
           <div class="meter-fill" id="meter-fill"></div>
         </div>
         <div class="meter-marks">
-          <span>0</span><span>300 — in range — 400</span><span>500+</span>
+          <span>0</span><span>150 — in range — 400</span><span>500+</span>
         </div>
       </div>
     </div>
@@ -530,7 +530,7 @@
     <div class="confirm-box" id="confirm-box"></div>
 
     <p class="footnote">
-      <b>Reminder:</b> essays run 300–400 words. Voters are judging which argument is more convincing, not which one they agree with — write to persuade an undecided reader, not to preach to your own side.
+      <b>Reminder:</b> essays run 150–400 words. Voters are judging which argument is more convincing, not which one they agree with — write to persuade an undecided reader, not to preach to your own side.
     </p>
   </div>
 
@@ -656,8 +656,8 @@
       statusEl.textContent = '— start writing';
       statusEl.style.color = 'var(--ink-faint)';
       fillEl.style.background = 'var(--ink-faint)';
-    } else if (count < 300){
-      statusEl.textContent = `${300 - count} to go`;
+    } else if (count < 150){
+      statusEl.textContent = `${150 - count} to go`;
       statusEl.style.color = 'var(--gold)';
       fillEl.style.background = 'var(--gold)';
     } else if (count <= 400){
@@ -674,7 +674,7 @@
 
   function validateForm(){
     const count = wordCount(document.getElementById('essay').value);
-    const inRange = count >= 300 && count <= 400;
+    const inRange = count >= 150 && count <= 400;
     const btn = document.getElementById('submit-btn');
     btn.disabled = !(inRange && selectedStance);
   }
@@ -689,7 +689,7 @@
   async function submitEssay(){
     const essayText = document.getElementById('essay').value.trim();
     const count = wordCount(essayText);
-    if (!selectedStance || count < 300 || count > 400) {
+    if (!selectedStance || count < 150 || count > 400) {
       showError('Check your stance selection and word count before submitting.');
       return;
     }
