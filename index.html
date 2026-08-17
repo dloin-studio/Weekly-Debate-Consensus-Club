@@ -406,7 +406,7 @@
     color: var(--ink-soft);
   }
   
-  /* Highlighted Votes Badge */
+  /* ==== VOTING FEATURE (commented out — uncomment to restore) ====
   .case-file-votes {
     font-family: 'Space Grotesk', sans-serif;
     font-weight: 700;
@@ -417,7 +417,6 @@
     display: inline-block;
   }
 
-  /* Vote Button Styles */
   .vote-btn{
     font-family: 'Space Grotesk', sans-serif;
     font-size: 11px;
@@ -433,6 +432,7 @@
   .vote-btn:hover:not(:disabled) { background: #3a352a; }
   .vote-btn:disabled { background: var(--rule); color: var(--ink-soft); cursor: not-allowed; }
   .vote-btn.voted { background: var(--gold); color: white; }
+  ==== END VOTING FEATURE ==== */
 
   .case-file-body{
     display:none;
@@ -564,6 +564,7 @@
 
   const getMySubmissionId = () => localStorage.getItem('mySubmissionId');
   const setMySubmissionId = (id) => localStorage.setItem('mySubmissionId', id);
+  /* ==== VOTING FEATURE (commented out — uncomment to restore) ====
   const getMyVotes = () => JSON.parse(localStorage.getItem('myVotes') || '[]');
   const addMyVote = (id) => {
     const votes = getMyVotes();
@@ -572,6 +573,7 @@
       localStorage.setItem('myVotes', JSON.stringify(votes));
     }
   };
+  ==== END VOTING FEATURE ==== */
 
   function escapeHtml(str){
     const d = document.createElement('div');
@@ -741,6 +743,7 @@
     }
   }
 
+  /* ==== VOTING FEATURE (commented out — uncomment to restore) ====
   async function castVote(entryId, currentVotes) {
     const myVotes = getMyVotes();
     if (myVotes.length >= 2) return;
@@ -760,6 +763,7 @@
       alert("Failed to cast vote. Check your connection.");
     }
   }
+  ==== END VOTING FEATURE ==== */
 
   async function loadLog(){
     const loadingEl = document.getElementById('log-loading');
@@ -801,24 +805,30 @@
         groups[e.stance].push(e);
       });
 
+      /* ==== VOTING FEATURE (commented out — uncomment to restore) ====
       // Sort entries within each stance group by vote count (highest first)
       Object.keys(groups).forEach(stance => {
         groups[stance].sort((a, b) => (b.votes || 0) - (a.votes || 0));
       });
+      ==== END VOTING FEATURE ==== */
 
       const mySubId = getMySubmissionId();
+      /* ==== VOTING FEATURE (commented out — uncomment to restore) ====
       const myVotes = getMyVotes();
       const hasReachedLimit = myVotes.length >= 2;
+      ==== END VOTING FEATURE ==== */
 
       groupsEl.innerHTML = Object.keys(groups).map(stance => `
         <div class="stance-group">
           <div class="stance-group-title">${escapeHtml(stance)}</div>
           ${groups[stance].map(e => {
-            
+
             let isMine = (e.id == mySubId);
+
+            /* ==== VOTING FEATURE (commented out — uncomment to restore) ====
             let hasVotedForThis = myVotes.includes(e.id);
             let votesCount = e.votes || 0;
-            
+
             let btnHtml = '';
             if (isMine) {
               btnHtml = `<button class="vote-btn" disabled>Your Essay</button>`;
@@ -829,6 +839,8 @@
             } else {
               btnHtml = `<button class="vote-btn" onclick="event.stopPropagation(); castVote('${e.id}', ${votesCount})">Vote</button>`;
             }
+            ==== END VOTING FEATURE ==== */
+            let btnHtml = '';
 
             return `
             <div class="case-file" onclick="this.classList.toggle('open')">
@@ -836,7 +848,8 @@
                 <div class="case-file-left">
                   <span class="case-file-author">${escapeHtml(e.author)}</span>
                   <span class="case-file-meta">
-                    ${e.word_count} words · <span class="case-file-votes">${votesCount} vote${votesCount === 1 ? '' : 's'}</span> · ${new Date(e.created_at).toLocaleString()}
+                    <!-- VOTING FEATURE (commented out): vote-count badge used to sit here, right after word count -->
+                    ${e.word_count} words · ${new Date(e.created_at).toLocaleString()}
                   </span>
                 </div>
                 ${btnHtml}
