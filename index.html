@@ -27,7 +27,6 @@
     --danger: #742e2e;
     --paper-shadow: rgba(34, 30, 23, 0.10);
   }
-  
 
   *{ box-sizing:border-box; }
   html,body{ margin:0; padding:0; }
@@ -406,7 +405,6 @@
     color: var(--ink-soft);
   }
   
-  /* ==== VOTING FEATURE (commented out — uncomment to restore) ====
   .case-file-votes {
     font-family: 'Space Grotesk', sans-serif;
     font-weight: 700;
@@ -432,7 +430,74 @@
   .vote-btn:hover:not(:disabled) { background: #3a352a; }
   .vote-btn:disabled { background: var(--rule); color: var(--ink-soft); cursor: not-allowed; }
   .vote-btn.voted { background: var(--gold); color: white; }
-  ==== END VOTING FEATURE ==== */
+
+  /* ---------- Phone gate modal ---------- */
+  .phone-modal-backdrop{
+    display:none;
+    position: fixed;
+    inset: 0;
+    background: rgba(28,27,25,0.55);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .phone-modal-backdrop.show{ display:flex; }
+  .phone-modal{
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    max-width: 380px;
+    width: 100%;
+    padding: 26px 24px;
+  }
+  .phone-modal h3{
+    font-family:'Fraunces', serif;
+    font-weight: 700;
+    font-size: 19px;
+    margin: 0 0 8px;
+  }
+  .phone-modal p{
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+    margin: 0 0 16px;
+  }
+  .phone-modal input[type=tel]{
+    width:100%;
+    font-family:'Source Serif 4', serif;
+    font-size: 16px;
+    padding: 11px 12px;
+    border: 1px solid var(--rule);
+    background: #fff;
+    color: var(--ink);
+  }
+  .phone-modal .phone-error{
+    display:none;
+    margin-top: 8px;
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 12px;
+    color: var(--against-color);
+  }
+  .phone-modal .phone-error.show{ display:block; }
+  .phone-modal .phone-modal-actions{
+    display:flex;
+    gap: 10px;
+    margin-top: 18px;
+  }
+  .phone-modal .submit-btn{ padding: 11px 20px; font-size: 13px; }
+  .phone-modal .btn-ghost{
+    background: none;
+    border: 1px solid var(--rule);
+    color: var(--ink-soft);
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 11px 16px;
+    cursor: pointer;
+  }
+  .phone-modal .btn-ghost:hover{ background: rgba(0,0,0,0.05); }
 
   .case-file-body{
     display:none;
@@ -488,6 +553,7 @@
       <div class="stance-defs" id="stance-defs"></div>
     </div>
 
+    <!--
     <div class="section-label">01 — Your details</div>
     <div class="field">
       <div class="field-label">Full name</div>
@@ -532,6 +598,8 @@
     <p class="footnote">
       <b>Reminder:</b> essays run 150–400 words. Voters are judging which argument is more convincing, not which one they agree with — write to persuade an undecided reader, not to preach to your own side.
     </p>
+    
+    -->
   </div>
 
   <!-- ===================== LOG VIEW ===================== -->
@@ -546,6 +614,20 @@
 
 </div>
 
+<!-- ===================== PHONE GATE ===================== -->
+<div class="phone-modal-backdrop" id="phone-modal-backdrop">
+  <div class="phone-modal">
+    <h3>One more thing</h3>
+    <p>Enter your phone number to submit an essay or vote. It's saved on this device so you won't be asked again, and it's used to stop people voting for their own essay.</p>
+    <input type="tel" id="phone-input" placeholder="e.g. 0612345678" autocomplete="tel" />
+    <div class="phone-error" id="phone-error"></div>
+    <div class="phone-modal-actions">
+      <button class="submit-btn" onclick="confirmPhone()">Continue</button>
+      <button class="btn-ghost" onclick="cancelPhone()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <script>
   const SUPABASE_URL = "https://fevvbxdxnqaltrhakrmu.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZldnZieGR4bnFhbHRyaGFrcm11Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY0ODEwNDQsImV4cCI6MjEwMjA1NzA0NH0.BC15V81UR3L9HnbYToo4LWto52_HP5kY9gO5mpYGhQA";
@@ -556,7 +638,8 @@
     weekLabel: "Week 01",
     headline: "Topic to be announced — check back Monday",
     framing: "The topic curator will post this week's neutral framing and stances here.",
-    stances: ["For", "Against"]
+    stances: ["For", "Against"],
+    votingEnabled: false
   };
 
   let config = null;
@@ -564,16 +647,87 @@
 
   const getMySubmissionId = () => localStorage.getItem('mySubmissionId');
   const setMySubmissionId = (id) => localStorage.setItem('mySubmissionId', id);
-  /* ==== VOTING FEATURE (commented out — uncomment to restore) ====
-  const getMyVotes = () => JSON.parse(localStorage.getItem('myVotes') || '[]');
+
+  /* Dynamically scope local votes per week and version tag to allow mid-week resets */
+  const getVoteKey = () => {
+    const week = (config && config.weekLabel) ? config.weekLabel : 'current';
+    return `myVotes_${week}_v2`;
+  };
+
+  const getMyVotes = () => {
+    return JSON.parse(localStorage.getItem(getVoteKey()) || '[]');
+  };
+
   const addMyVote = (id) => {
     const votes = getMyVotes();
     if (!votes.includes(id)) {
       votes.push(id);
-      localStorage.setItem('myVotes', JSON.stringify(votes));
+      localStorage.setItem(getVoteKey(), JSON.stringify(votes));
     }
   };
-  ==== END VOTING FEATURE ==== */
+
+  /* ---------- Phone gate ----------
+     A phone number is required before submitting an essay or voting.
+     Once entered it's kept in localStorage so the person isn't asked
+     again on this device, and it's stamped onto their submission so
+     the log can tell "your own essays" apart from everyone else's
+     (used to block self-voting) regardless of which browser session
+     they submitted from. */
+  const getMyPhone = () => localStorage.getItem('myPhone');
+  const setMyPhone = (phone) => localStorage.setItem('myPhone', phone);
+
+  function normalizePhone(raw){
+    // Keep a leading + if present, strip everything else that isn't a digit.
+    const trimmed = raw.trim();
+    const hasPlus = trimmed.startsWith('+');
+    const digits = trimmed.replace(/\D/g, '');
+    return (hasPlus ? '+' : '') + digits;
+  }
+
+  function isValidPhone(normalized){
+    const digitCount = normalized.replace(/\D/g, '').length;
+    return digitCount >= 8 && digitCount <= 15;
+  }
+
+  let pendingPhoneCallback = null;
+
+  // Runs `callback(phone)` once a phone number is available — immediately
+  // if we already have one saved, otherwise after the modal is confirmed.
+  function requirePhone(callback){
+    const existing = getMyPhone();
+    if (existing) {
+      callback(existing);
+      return;
+    }
+    pendingPhoneCallback = callback;
+    document.getElementById('phone-input').value = '';
+    document.getElementById('phone-error').classList.remove('show');
+    document.getElementById('phone-modal-backdrop').classList.add('show');
+    document.getElementById('phone-input').focus();
+  }
+
+  function confirmPhone(){
+    const raw = document.getElementById('phone-input').value;
+    const normalized = normalizePhone(raw);
+    const errorEl = document.getElementById('phone-error');
+
+    if (!isValidPhone(normalized)) {
+      errorEl.textContent = 'Enter a valid phone number (at least 8 digits).';
+      errorEl.classList.add('show');
+      return;
+    }
+
+    setMyPhone(normalized);
+    document.getElementById('phone-modal-backdrop').classList.remove('show');
+    const cb = pendingPhoneCallback;
+    pendingPhoneCallback = null;
+    if (cb) cb(normalized);
+  }
+
+  function cancelPhone(){
+    document.getElementById('phone-modal-backdrop').classList.remove('show');
+    pendingPhoneCallback = null;
+  }
 
   function escapeHtml(str){
     const d = document.createElement('div');
@@ -583,21 +737,35 @@
 
   async function loadConfig(){
     try {
-      const { data, error } = await db
+      // The live week is whichever row is flagged is_active. Fall back to
+      // the most recently created week if none is flagged (e.g. right
+      // after the is_active column was added).
+      let { data, error } = await db
         .from('weeks')
         .select('*')
-        .order('created_at', { ascending: false })
+        .eq('is_active', true)
         .limit(1)
         .maybeSingle();
+
+      if (!error && !data) {
+        ({ data, error } = await db
+          .from('weeks')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle());
+      }
 
       if (error || !data) {
         config = DEFAULT_CONFIG;
       } else {
         config = {
+          id: data.id,
           weekLabel: data.week_label,
           headline: data.headline,
           framing: data.framing || '',
-          stances: Array.isArray(data.stances) ? data.stances : JSON.parse(data.stances)
+          stances: Array.isArray(data.stances) ? data.stances : JSON.parse(data.stances),
+          votingEnabled: !!data.voting_enabled
         };
       }
     } catch (e) {
@@ -688,13 +856,19 @@
     setTimeout(() => box.classList.remove('show'), 5000);
   }
 
-  async function submitEssay(){
+  function submitEssay(){
     const essayText = document.getElementById('essay').value.trim();
     const count = wordCount(essayText);
     if (!selectedStance || count < 150 || count > 400) {
       showError('Check your stance selection and word count before submitting.');
       return;
     }
+    requirePhone((phone) => doSubmitEssay(phone));
+  }
+
+  async function doSubmitEssay(phone){
+    const essayText = document.getElementById('essay').value.trim();
+    const count = wordCount(essayText);
 
     const anon = document.getElementById('anon-check').checked;
     const nameRaw = document.getElementById('author-name').value.trim();
@@ -714,7 +888,8 @@
           word_count: count,
           author: author,
           anonymous: anon,
-          votes: 0
+          votes: 0,
+          phone_number: phone
         }])
         .select()
         .single();
@@ -743,11 +918,16 @@
     }
   }
 
-  /* ==== VOTING FEATURE (commented out — uncomment to restore) ====
-  async function castVote(entryId, currentVotes) {
+  function castVote(entryId, currentVotes) {
     const myVotes = getMyVotes();
     if (myVotes.length >= 2) return;
-    
+    requirePhone(() => doCastVote(entryId, currentVotes));
+  }
+
+  async function doCastVote(entryId, currentVotes) {
+    const myVotes = getMyVotes();
+    if (myVotes.length >= 2) return;
+
     try {
       const { error } = await db
         .from('submissions')
@@ -763,7 +943,6 @@
       alert("Failed to cast vote. Check your connection.");
     }
   }
-  ==== END VOTING FEATURE ==== */
 
   async function loadLog(){
     const loadingEl = document.getElementById('log-loading');
@@ -805,42 +984,47 @@
         groups[e.stance].push(e);
       });
 
-      /* ==== VOTING FEATURE (commented out — uncomment to restore) ====
-      // Sort entries within each stance group by vote count (highest first)
-      Object.keys(groups).forEach(stance => {
-        groups[stance].sort((a, b) => (b.votes || 0) - (a.votes || 0));
-      });
-      ==== END VOTING FEATURE ==== */
+      const votingOn = !!(config && config.votingEnabled);
+
+      if (votingOn) {
+        // Sort entries within each stance group by vote count (highest first)
+        Object.keys(groups).forEach(stance => {
+          groups[stance].sort((a, b) => (b.votes || 0) - (a.votes || 0));
+        });
+      }
 
       const mySubId = getMySubmissionId();
-      /* ==== VOTING FEATURE (commented out — uncomment to restore) ====
+      const myPhone = getMyPhone();
       const myVotes = getMyVotes();
       const hasReachedLimit = myVotes.length >= 2;
-      ==== END VOTING FEATURE ==== */
 
       groupsEl.innerHTML = Object.keys(groups).map(stance => `
         <div class="stance-group">
           <div class="stance-group-title">${escapeHtml(stance)}</div>
           ${groups[stance].map(e => {
 
-            let isMine = (e.id == mySubId);
-
-            /* ==== VOTING FEATURE (commented out — uncomment to restore) ====
-            let hasVotedForThis = myVotes.includes(e.id);
-            let votesCount = e.votes || 0;
+            // An essay counts as "mine" if it matches my saved phone number
+            // (works across sessions/devices) or, as a fallback for older
+            // rows with no phone on file, my locally-remembered submission id.
+            let isMine = (myPhone && e.phone_number && e.phone_number === myPhone) || (e.id == mySubId);
 
             let btnHtml = '';
-            if (isMine) {
-              btnHtml = `<button class="vote-btn" disabled>Your Essay</button>`;
-            } else if (hasVotedForThis) {
-              btnHtml = `<button class="vote-btn voted" disabled>Voted</button>`;
-            } else if (hasReachedLimit) {
-              btnHtml = `<button class="vote-btn" disabled>Limit Reached</button>`;
-            } else {
-              btnHtml = `<button class="vote-btn" onclick="event.stopPropagation(); castVote('${e.id}', ${votesCount})">Vote</button>`;
+            let votesBadge = '';
+            if (votingOn) {
+              let hasVotedForThis = myVotes.includes(e.id);
+              let votesCount = e.votes || 0;
+              votesBadge = `<span class="case-file-votes">${votesCount} vote${votesCount === 1 ? '' : 's'}</span> · `;
+
+              if (isMine) {
+                btnHtml = `<button class="vote-btn" disabled>Your Essay</button>`;
+              } else if (hasVotedForThis) {
+                btnHtml = `<button class="vote-btn voted" disabled>Voted</button>`;
+              } else if (hasReachedLimit) {
+                btnHtml = `<button class="vote-btn" disabled>Limit Reached</button>`;
+              } else {
+                btnHtml = `<button class="vote-btn" onclick="event.stopPropagation(); castVote('${e.id}', ${votesCount})">Vote</button>`;
+              }
             }
-            ==== END VOTING FEATURE ==== */
-            let btnHtml = '';
 
             return `
             <div class="case-file" onclick="this.classList.toggle('open')">
@@ -848,8 +1032,7 @@
                 <div class="case-file-left">
                   <span class="case-file-author">${escapeHtml(e.author)}</span>
                   <span class="case-file-meta">
-                    <!-- VOTING FEATURE (commented out): vote-count badge used to sit here, right after word count -->
-                    ${e.word_count} words · ${new Date(e.created_at).toLocaleString()}
+                    ${votesBadge}${e.word_count} words · ${new Date(e.created_at).toLocaleString()}
                   </span>
                 </div>
                 ${btnHtml}
@@ -872,7 +1055,10 @@
     document.getElementById('tab-log-btn').classList.toggle('active', which === 'log');
     document.getElementById('view-submit').classList.toggle('active', which === 'submit');
     document.getElementById('view-log').classList.toggle('active', which === 'log');
-    if (which === 'log') loadLog();
+
+    if (which === 'log') {
+      loadLog();
+    }
   }
 
   loadConfig();
