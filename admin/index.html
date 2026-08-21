@@ -119,12 +119,31 @@
   .week-row{
     border: 1px solid var(--rule);
     background: var(--paper-raised);
-    padding: 12px 14px;
-    margin-bottom: 8px;
+    padding: 16px 18px;
+    margin-bottom: 12px;
   }
   .week-row .label{ font-family:'Space Grotesk', sans-serif; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color: var(--gold); }
-  .week-row .headline{ font-family:'Fraunces', serif; font-weight:600; font-size:16px; margin: 3px 0; }
-  .week-row .meta{ font-family:'Space Grotesk', sans-serif; font-size:11px; color: var(--ink-soft); }
+  .week-row .headline{ font-family:'Fraunces', serif; font-weight:600; font-size:18px; margin: 4px 0; }
+  .week-row .meta{ font-family:'Space Grotesk', sans-serif; font-size:11.5px; color: var(--ink-soft); }
+  
+  .week-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .btn-small {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--ink);
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: all .15s ease;
+  }
+  .btn-small:hover { background: rgba(34,30,23,0.06); }
+  .btn-small.active-state { background: var(--ink); color: var(--paper-raised); }
+  .btn-small.danger { color: var(--against-color); border-color: var(--against-color-soft); }
+  .btn-small.danger:hover { background: var(--against-color-soft); }
+  
   .loading-line{ font-family:'Space Grotesk', sans-serif; font-size:12px; color: var(--ink-faint); }
   #admin-view{ display:none; }
 </style>
@@ -164,7 +183,7 @@
       <div class="msg" id="save-msg"></div>
     </div>
 
-    <div class="section-label">Past weeks</div>
+    <div class="section-label">Manage Weeks</div>
     <div class="loading-line" id="history-loading">Loading history…</div>
     <div id="history-list"></div>
   </div>
@@ -252,11 +271,22 @@
     btn.textContent = 'Publishing…';
 
     try {
+      // Deactivate other weeks before creating this new one
+      const { data: activeWeeks } = await db.from('weeks').select('id').eq('is_active', true);
+      if (activeWeeks && activeWeeks.length > 0) {
+        for (let w of activeWeeks) {
+          await db.from('weeks').update({ is_active: false }).eq('id', w.id);
+        }
+      }
+
+      // Publish as the new LIVE week, voting disabled by default
       const { error } = await db.from('weeks').insert([{
         week_label: weekLabel,
         headline: headline,
         framing: framing,
         stances: stances,
+        is_active: true,
+        voting_enabled: false,
         created_by: session.user.id
       }]);
       if (error) throw error;
@@ -273,6 +303,43 @@
     } finally {
       btn.disabled = false;
       btn.textContent = 'Publish as new week';
+    }
+  }
+
+  async function toggleVoting(id, currentState) {
+    try {
+      await db.from('weeks').update({ voting_enabled: !currentState }).eq('id', id);
+      loadHistory();
+    } catch (e) {
+      console.error('Toggle voting error:', e);
+      alert('Could not change voting status.');
+    }
+  }
+
+  async function setActive(id) {
+    try {
+      const { data: activeWeeks } = await db.from('weeks').select('id').eq('is_active', true);
+      if (activeWeeks && activeWeeks.length > 0) {
+        for (let w of activeWeeks) {
+          await db.from('weeks').update({ is_active: false }).eq('id', w.id);
+        }
+      }
+      await db.from('weeks').update({ is_active: true }).eq('id', id);
+      loadHistory();
+    } catch (e) {
+      console.error('Set active error:', e);
+      alert('Could not set active week.');
+    }
+  }
+
+  async function deleteWeek(id, label) {
+    if (!confirm(`Are you sure you want to delete ${label}? All related data for this week will be removed.`)) return;
+    try {
+      await db.from('weeks').delete().eq('id', id);
+      loadHistory();
+    } catch (e) {
+      console.error('Delete error:', e);
+      alert('Could not delete week.');
     }
   }
 
@@ -296,11 +363,23 @@
         return;
       }
 
-      listEl.innerHTML = data.map((w, i) => `
+      listEl.innerHTML = data.map((w) => `
         <div class="week-row">
-          <div class="label">${escapeHtml(w.week_label)}${i === 0 ? ' — LIVE NOW' : ''}</div>
+          <div class="label">${escapeHtml(w.week_label)}${w.is_active ? ' — LIVE NOW' : ''}</div>
           <div class="headline">${escapeHtml(w.headline)}</div>
           <div class="meta">${(Array.isArray(w.stances) ? w.stances : []).map(escapeHtml).join(' · ')} — ${new Date(w.created_at).toLocaleString()}</div>
+          
+          <div class="week-actions">
+            <button class="btn-small ${w.voting_enabled ? 'active-state' : ''}" onclick="toggleVoting('${w.id}', ${w.voting_enabled})">
+              ${w.voting_enabled ? 'Voting is ON (Click to Disable)' : 'Voting is OFF (Click to Enable)'}
+            </button>
+            <button class="btn-small ${w.is_active ? 'active-state' : ''}" onclick="setActive('${w.id}')" ${w.is_active ? 'disabled' : ''}>
+              ${w.is_active ? 'Currently Active' : 'Set as Active Week'}
+            </button>
+            <button class="btn-small danger" onclick="deleteWeek('${w.id}', '${escapeHtml(w.week_label).replace(/'/g, "\\'")}')">
+              Delete
+            </button>
+          </div>
         </div>
       `).join('');
     } catch (e) {
