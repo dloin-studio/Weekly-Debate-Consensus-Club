@@ -416,6 +416,17 @@
     display: inline-block;
   }
 
+  .case-file-comments {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    color: var(--ink-soft);
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    padding: 1px 6px;
+    border-radius: 2px;
+    display: inline-block;
+  }
+
   .vote-btn{
     font-family: 'Space Grotesk', sans-serif;
     font-size: 11px;
@@ -432,7 +443,54 @@
   .vote-btn:disabled { background: var(--rule); color: var(--ink-soft); cursor: not-allowed; }
   .vote-btn.voted { background: var(--gold); color: white; }
 
-  /* ---------- Phone gate modal ---------- */
+  /* ---------- Auth bar ---------- */
+  .auth-bar{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap: 10px;
+    margin-bottom: 18px;
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+  }
+  .auth-bar .who{ color: var(--ink); font-weight:600; }
+  .auth-bar button{
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 12px;
+    letter-spacing:0.04em;
+    text-transform: uppercase;
+    background: none;
+    border: 1px solid var(--ink);
+    color: var(--ink);
+    padding: 7px 13px;
+    cursor: pointer;
+  }
+  .auth-bar button:hover{ background: rgba(34,30,23,0.06); }
+
+  .login-gate{
+    border: 1px dashed var(--rule);
+    padding: 22px;
+    text-align:center;
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  .login-gate button{
+    display:block;
+    margin: 12px auto 0;
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 12.5px;
+    letter-spacing:0.04em;
+    text-transform: uppercase;
+    background: var(--ink);
+    color: var(--paper-raised);
+    border:none;
+    padding: 10px 18px;
+    cursor:pointer;
+  }
+
+  /* ---------- Auth modal (login / sign up) ---------- */
   .phone-modal-backdrop{
     display:none;
     position: fixed;
@@ -442,14 +500,16 @@
     align-items: center;
     justify-content: center;
     padding: 20px;
+    overflow-y: auto;
   }
   .phone-modal-backdrop.show{ display:flex; }
   .phone-modal{
     background: var(--paper);
     border: 1px solid var(--ink);
-    max-width: 380px;
+    max-width: 400px;
     width: 100%;
     padding: 26px 24px;
+    margin: auto;
   }
   .phone-modal h3{
     font-family:'Fraunces', serif;
@@ -464,23 +524,78 @@
     line-height: 1.5;
     margin: 0 0 16px;
   }
-  .phone-modal input[type=tel]{
+  .auth-tabs{ display:flex; gap:4px; margin-bottom:16px; font-family:'Space Grotesk', sans-serif; }
+  .auth-tabs button{
+    flex:1;
+    background:transparent;
+    border:1px solid var(--ink);
+    color:var(--ink);
+    padding:8px;
+    font-size:12px;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    cursor:pointer;
+  }
+  .auth-tabs button:first-child{ border-right:none; }
+  .auth-tabs button.active{ background:var(--ink); color:var(--paper-raised); }
+  .phone-modal label{
+    display:block;
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 12px 0 5px;
+  }
+  .phone-modal label:first-of-type{ margin-top:0; }
+  .phone-modal input[type=tel], .phone-modal input[type=text], .phone-modal input[type=email], .phone-modal input[type=password], .phone-modal input[type=number], .phone-modal input[type=file]{
     width:100%;
     font-family:'Source Serif 4', serif;
-    font-size: 16px;
-    padding: 11px 12px;
+    font-size: 15px;
+    padding: 10px 12px;
     border: 1px solid var(--rule);
     background: #fff;
     color: var(--ink);
   }
+  .field-hint{
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 11px;
+    color: var(--ink-faint);
+    margin-top: 5px;
+  }
+  .password-wrap{ position:relative; }
+  .password-wrap input{ padding-right: 40px; }
+  .password-toggle{
+    position:absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    background:none;
+    border:none;
+    padding: 4px;
+    cursor:pointer;
+    color: var(--ink-soft);
+    line-height: 0;
+  }
+  .password-toggle svg{ width:18px; height:18px; display:block; }
+  .auth-view{ display:none; }
+  .auth-view.active{ display:block; }
   .phone-modal .phone-error{
     display:none;
-    margin-top: 8px;
+    margin-top: 10px;
     font-family:'Space Grotesk', sans-serif;
     font-size: 12px;
     color: var(--against-color);
   }
   .phone-modal .phone-error.show{ display:block; }
+  .phone-modal .phone-ok{
+    display:none;
+    margin-top: 10px;
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 12px;
+    color: #245c3d;
+  }
+  .phone-modal .phone-ok.show{ display:block; }
   .phone-modal .phone-modal-actions{
     display:flex;
     gap: 10px;
@@ -499,6 +614,76 @@
     cursor: pointer;
   }
   .phone-modal .btn-ghost:hover{ background: rgba(0,0,0,0.05); }
+
+  /* ---------- Comments ---------- */
+  .comments-wrap{
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--rule);
+  }
+  .comments-title{
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 10px;
+  }
+  .comment-item{
+    font-size: 13.5px;
+    line-height: 1.5;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .comment-item:last-child{ border-bottom:none; }
+  .comment-author{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 12.5px;
+    color: var(--ink);
+    margin-right: 6px;
+  }
+  .comment-time{
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 11px;
+    color: var(--ink-faint);
+  }
+  .comment-body{ margin-top: 2px; }
+  .no-comments{
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 12px;
+    color: var(--ink-faint);
+  }
+  .comment-form{ margin-top: 12px; display:flex; gap:8px; }
+  .comment-form textarea{
+    flex:1;
+    font-family:'Source Serif 4', serif;
+    font-size: 13.5px;
+    padding: 9px 10px;
+    border: 1px solid var(--rule);
+    background:#fff;
+    color: var(--ink);
+    min-height: 42px;
+    resize: vertical;
+  }
+  .comment-form button{
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing:0.04em;
+    background: var(--ink);
+    color: var(--paper-raised);
+    border:none;
+    padding: 0 16px;
+    cursor:pointer;
+  }
+  .comment-login-hint{
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 10px;
+  }
+  .comment-login-hint a{ color: var(--ink); cursor:pointer; text-decoration: underline; }
 
   .case-file-body{
     display:none;
@@ -539,6 +724,11 @@
   <div class="eyebrow"><span class="dot"></span>Involeap &nbsp;·&nbsp; Weekly Debate &amp; Consensus Club</div>
   <h1 class="masthead">Entry Form</h1>
 
+  <div class="auth-bar" id="auth-bar">
+    <button onclick="openAuthModal('login')">Log in</button>
+    <button onclick="openAuthModal('signup')">Create account</button>
+  </div>
+
   <div class="tabs">
     <button class="tab-btn active" id="tab-submit-btn" onclick="switchTab('submit')">Submit an Essay</button>
     <button class="tab-btn" id="tab-log-btn" onclick="switchTab('log')">Entry Log</button>
@@ -554,53 +744,55 @@
       <div class="stance-defs" id="stance-defs"></div>
     </div>
 
-    <!--
-    <div class="section-label">01 — Your details</div>
-    <div class="field">
-      <div class="field-label">Full name</div>
-      <input type="text" id="author-name" placeholder="Jamie Rivera" />
-      <div class="anon-row">
-        <input type="checkbox" id="anon-check" onchange="toggleAnon()" />
-        <label for="anon-check">Submit anonymously (judging is blind either way)</label>
-      </div>
+    <div class="login-gate" id="submit-login-gate">
+      Log in or create an account to submit an essay.
+      <button onclick="openAuthModal('login')">Log in / Sign up</button>
     </div>
 
-    <div class="field">
-      <div class="field-label">Stance you're arguing</div>
-      <div class="stance-pills" id="stance-pills"></div>
-    </div>
-
-    <div class="section-label">02 — Your essay</div>
-    <div class="field">
-      <textarea id="essay" placeholder="State your position plainly in the first few lines, then build your case…" oninput="updateMeter()"></textarea>
-      <div class="meter-wrap">
-        <div class="meter-readout">
-          <span class="meter-count" id="meter-count">0 words</span>
-          <span class="meter-status" id="meter-status">— start writing</span>
-        </div>
-        <div class="meter-track">
-          <div class="meter-zone-ok"></div>
-          <div class="meter-fill" id="meter-fill"></div>
-        </div>
-        <div class="meter-marks">
-          <span>0</span><span>150 — in range — 400</span><span>500+</span>
+    <div id="submit-form-wrap" style="display:none;">
+      <div class="section-label">01 — Your details</div>
+      <div class="field">
+        <div class="anon-row">
+          <input type="checkbox" id="anon-check" />
+          <label for="anon-check">Submit anonymously (judging is blind either way — your account is still on file)</label>
         </div>
       </div>
+
+      <div class="field">
+        <div class="field-label">Stance you're arguing</div>
+        <div class="stance-pills" id="stance-pills"></div>
+      </div>
+
+      <div class="section-label">02 — Your essay</div>
+      <div class="field">
+        <textarea id="essay" placeholder="State your position plainly in the first few lines, then build your case…" oninput="updateMeter()"></textarea>
+        <div class="meter-wrap">
+          <div class="meter-readout">
+            <span class="meter-count" id="meter-count">0 words</span>
+            <span class="meter-status" id="meter-status">— start writing</span>
+          </div>
+          <div class="meter-track">
+            <div class="meter-zone-ok"></div>
+            <div class="meter-fill" id="meter-fill"></div>
+          </div>
+          <div class="meter-marks">
+            <span>0</span><span>150 — in range — 400</span><span>500+</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="submit-row">
+        <button class="submit-btn" id="submit-btn" disabled onclick="submitEssay()">Submit entry</button>
+        <span class="submit-hint">One submission per person per topic · deadline Thursday</span>
+      </div>
+
+      <div class="error-box" id="error-box"></div>
+      <div class="confirm-box" id="confirm-box"></div>
+
+      <p class="footnote">
+        <b>Reminder:</b> essays run 150–400 words. Voters are judging which argument is more convincing, not which one they agree with — write to persuade an undecided reader, not to preach to your own side.
+      </p>
     </div>
-
-    <div class="submit-row">
-      <button class="submit-btn" id="submit-btn" disabled onclick="submitEssay()">Submit entry</button>
-      <span class="submit-hint">One submission per person per topic · deadline Thursday</span>
-    </div>
-
-    <div class="error-box" id="error-box"></div>
-    <div class="confirm-box" id="confirm-box"></div>
-
-    <p class="footnote">
-      <b>Reminder:</b> essays run 150–400 words. Voters are judging which argument is more convincing, not which one they agree with — write to persuade an undecided reader, not to preach to your own side.
-    </p>
-    
-    -->
   </div>
 
   <!-- ===================== LOG VIEW ===================== -->
@@ -615,16 +807,58 @@
 
 </div>
 
-<!-- ===================== PHONE GATE ===================== -->
-<div class="phone-modal-backdrop" id="phone-modal-backdrop">
+<!-- ===================== AUTH MODAL ===================== -->
+<div class="phone-modal-backdrop" id="auth-modal-backdrop">
   <div class="phone-modal">
-    <h3>One more thing</h3>
-    <p>Enter your phone number to submit an essay or vote. It's saved on this device so you won't be asked again, and it's used to stop people voting for their own essay.</p>
-    <input type="tel" id="phone-input" placeholder="e.g. 0612345678" autocomplete="tel" />
-    <div class="phone-error" id="phone-error"></div>
-    <div class="phone-modal-actions">
-      <button class="submit-btn" onclick="confirmPhone()">Continue</button>
-      <button class="btn-ghost" onclick="cancelPhone()">Cancel</button>
+    <div class="auth-tabs">
+      <button id="auth-tab-login" onclick="switchAuthTab('login')">Log in</button>
+      <button id="auth-tab-signup" onclick="switchAuthTab('signup')">Sign up</button>
+    </div>
+
+    <div class="auth-view" id="auth-view-login">
+      <h3>Welcome back</h3>
+      <form id="login-form" onsubmit="return handleLoginSubmit(event)">
+        <label for="login-email">Email</label>
+        <input type="email" id="login-email" name="email" autocomplete="username" />
+        <label for="login-password">Password</label>
+        <div class="password-wrap">
+          <input type="password" id="login-password" name="password" autocomplete="current-password" />
+          <button type="button" class="password-toggle" id="login-password-toggle" onclick="togglePasswordVisibility('login-password', this)" aria-label="Show password"></button>
+        </div>
+        <div class="phone-error" id="login-error"></div>
+        <div class="phone-modal-actions">
+          <button type="submit" class="submit-btn" id="login-submit-btn">Log in</button>
+          <button type="button" class="btn-ghost" onclick="closeAuthModal()">Cancel</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="auth-view" id="auth-view-signup">
+      <h3>Create your account</h3>
+      <p>Needed once, to submit essays and comment. Your details stay private — only the display name shown below appears on entries and comments.</p>
+      <form id="signup-form" onsubmit="return handleSignupSubmit(event)">
+        <label for="signup-name">Full name</label>
+        <input type="text" id="signup-name" name="name" autocomplete="name" placeholder="Jamie Rivera" />
+        <label for="signup-age">Age</label>
+        <input type="number" id="signup-age" name="age" autocomplete="off" min="1" max="120" />
+        <label for="signup-grade">Grade</label>
+        <input type="text" id="signup-grade" name="grade" autocomplete="off" placeholder="e.g. 10th grade" />
+        <label for="signup-phone">Phone number</label>
+        <input type="tel" id="signup-phone" name="phone" autocomplete="tel" placeholder="e.g. 0612345678" />
+        <label for="signup-email">Email</label>
+        <input type="email" id="signup-email" name="email" autocomplete="username" />
+        <label for="signup-password">Password</label>
+        <div class="password-wrap">
+          <input type="password" id="signup-password" name="new-password" autocomplete="new-password" />
+          <button type="button" class="password-toggle" id="signup-password-toggle" onclick="togglePasswordVisibility('signup-password', this)" aria-label="Show password"></button>
+        </div>
+        <div class="phone-error" id="signup-error"></div>
+        <div class="phone-ok" id="signup-ok"></div>
+        <div class="phone-modal-actions">
+          <button type="submit" class="submit-btn" id="signup-submit-btn">Create account</button>
+          <button type="button" class="btn-ghost" onclick="closeAuthModal()">Cancel</button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
@@ -667,68 +901,199 @@
     }
   };
 
-  /* ---------- Phone gate ----------
-     A phone number is required before submitting an essay or voting.
-     Once entered it's kept in localStorage so the person isn't asked
-     again on this device, and it's stamped onto their submission so
-     the log can tell "your own essays" apart from everyone else's
-     (used to block self-voting) regardless of which browser session
-     they submitted from. */
-  const getMyPhone = () => localStorage.getItem('myPhone');
-  const setMyPhone = (phone) => localStorage.setItem('myPhone', phone);
+  /* ---------- Accounts ----------
+     Logging in is required to submit an essay or post a comment.
+     Reading essays/comments and voting stay open to anyone.
+     `currentUser` / `currentProfile` hold the signed-in person's
+     auth record and their private profile row (name/age/grade/phone). */
+  let currentUser = null;
+  let currentProfile = null;
+  let pendingAuthCallback = null; // run once login/signup succeeds
 
-  function normalizePhone(raw){
-    // Keep a leading + if present, strip everything else that isn't a digit.
-    const trimmed = raw.trim();
-    const hasPlus = trimmed.startsWith('+');
-    const digits = trimmed.replace(/\D/g, '');
-    return (hasPlus ? '+' : '') + digits;
-  }
-
-  function isValidPhone(normalized){
-    const digitCount = normalized.replace(/\D/g, '').length;
-    return digitCount >= 8 && digitCount <= 15;
-  }
-
-  let pendingPhoneCallback = null;
-
-  // Runs `callback(phone)` once a phone number is available — immediately
-  // if we already have one saved, otherwise after the modal is confirmed.
-  function requirePhone(callback){
-    const existing = getMyPhone();
-    if (existing) {
-      callback(existing);
-      return;
+  async function checkSession(){
+    const { data: { session } } = await db.auth.getSession();
+    currentUser = session ? session.user : null;
+    currentProfile = null;
+    if (currentUser) {
+      const { data } = await db.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
+      currentProfile = data;
     }
-    pendingPhoneCallback = callback;
-    document.getElementById('phone-input').value = '';
-    document.getElementById('phone-error').classList.remove('show');
-    document.getElementById('phone-modal-backdrop').classList.add('show');
-    document.getElementById('phone-input').focus();
+    renderAuthState();
   }
 
-  function confirmPhone(){
-    const raw = document.getElementById('phone-input').value;
-    const normalized = normalizePhone(raw);
-    const errorEl = document.getElementById('phone-error');
+  function renderAuthState(){
+    const bar = document.getElementById('auth-bar');
+    const gate = document.getElementById('submit-login-gate');
+    const form = document.getElementById('submit-form-wrap');
 
-    if (!isValidPhone(normalized)) {
-      errorEl.textContent = 'Enter a valid phone number (at least 8 digits).';
+    if (currentUser) {
+      const displayName = (currentProfile && currentProfile.name) || currentUser.email;
+      bar.innerHTML = `<span class="who">${escapeHtml(displayName)}</span><button onclick="logout()">Log out</button>`;
+      gate.style.display = 'none';
+      form.style.display = 'block';
+    } else {
+      bar.innerHTML = `<button onclick="openAuthModal('login')">Log in</button><button onclick="openAuthModal('signup')">Create account</button>`;
+      gate.style.display = 'block';
+      form.style.display = 'none';
+    }
+    validateForm();
+
+    const cb = pendingAuthCallback;
+    if (cb && currentUser) {
+      pendingAuthCallback = null;
+      cb();
+    }
+  }
+
+  // Opens the login/signup modal. If `then` is given, it runs automatically
+  // once the person successfully logs in or signs up (used so "post a
+  // comment" or "submit" can pick straight back up after auth).
+  function openAuthModal(tab, then){
+    pendingAuthCallback = then || null;
+    switchAuthTab(tab || 'login');
+    document.getElementById('login-error').classList.remove('show');
+    document.getElementById('signup-error').classList.remove('show');
+    document.getElementById('signup-ok').classList.remove('show');
+    document.getElementById('auth-modal-backdrop').classList.add('show');
+  }
+
+  function closeAuthModal(){
+    document.getElementById('auth-modal-backdrop').classList.remove('show');
+    pendingAuthCallback = null;
+  }
+
+  function switchAuthTab(tab){
+    document.getElementById('auth-tab-login').classList.toggle('active', tab === 'login');
+    document.getElementById('auth-tab-signup').classList.toggle('active', tab === 'signup');
+    document.getElementById('auth-view-login').classList.toggle('active', tab === 'login');
+    document.getElementById('auth-view-signup').classList.toggle('active', tab === 'signup');
+  }
+
+  // Wrapping the fields in real <form> elements and handling the submit
+  // event (instead of a plain button onclick) is what lets the browser
+  // recognize this as a login form and offer to save the password.
+  function handleLoginSubmit(evt){
+    evt.preventDefault();
+    doLogin();
+    return false;
+  }
+
+  function handleSignupSubmit(evt){
+    evt.preventDefault();
+    doSignup();
+    return false;
+  }
+
+  async function doLogin(){
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    const errorEl = document.getElementById('login-error');
+    errorEl.classList.remove('show');
+
+    if (!email || !password) {
+      errorEl.textContent = 'Enter your email and password.';
       errorEl.classList.add('show');
       return;
     }
 
-    setMyPhone(normalized);
-    document.getElementById('phone-modal-backdrop').classList.remove('show');
-    const cb = pendingPhoneCallback;
-    pendingPhoneCallback = null;
-    if (cb) cb(normalized);
+    const btn = document.getElementById('login-submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Logging in…';
+    const { error } = await db.auth.signInWithPassword({ email, password });
+    btn.disabled = false;
+    btn.textContent = 'Log in';
+
+    if (error) {
+      errorEl.textContent = 'Login failed — check your email and password.';
+      errorEl.classList.add('show');
+      return;
+    }
+
+    document.getElementById('auth-modal-backdrop').classList.remove('show');
+    document.getElementById('login-form').reset();
+    await checkSession();
   }
 
-  function cancelPhone(){
-    document.getElementById('phone-modal-backdrop').classList.remove('show');
-    pendingPhoneCallback = null;
+  async function doSignup(){
+    const name = document.getElementById('signup-name').value.trim();
+    const age = document.getElementById('signup-age').value.trim();
+    const grade = document.getElementById('signup-grade').value.trim();
+    const phone = document.getElementById('signup-phone').value.trim();
+    const email = document.getElementById('signup-email').value.trim();
+    const password = document.getElementById('signup-password').value;
+    const errorEl = document.getElementById('signup-error');
+    const okEl = document.getElementById('signup-ok');
+    errorEl.classList.remove('show');
+    okEl.classList.remove('show');
+
+    if (!name || !email || !password) {
+      errorEl.textContent = 'Name, email, and password are required.';
+      errorEl.classList.add('show');
+      return;
+    }
+    if (password.length < 6) {
+      errorEl.textContent = 'Password must be at least 6 characters.';
+      errorEl.classList.add('show');
+      return;
+    }
+
+    const btn = document.getElementById('signup-submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Creating…';
+
+    try {
+      const { data, error } = await db.auth.signUp({ email, password });
+      if (error) throw error;
+
+      // If email confirmation is required, there's no session yet —
+      // the profile gets created the first time they log in successfully.
+      if (!data.session) {
+        okEl.textContent = 'Account created — check your email to confirm it, then log in.';
+        okEl.classList.add('show');
+        switchAuthTab('login');
+        return;
+      }
+
+      const user = data.session.user;
+
+      await db.from('profiles').insert([{
+        id: user.id,
+        name: name,
+        age: age ? parseInt(age, 10) : null,
+        grade: grade || null,
+        phone: phone || null
+      }]);
+
+      document.getElementById('auth-modal-backdrop').classList.remove('show');
+      document.getElementById('signup-form').reset();
+      await checkSession();
+    } catch (e) {
+      console.error('Signup error:', e);
+      errorEl.textContent = 'Could not create account — that email may already be in use.';
+      errorEl.classList.add('show');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Create account';
+    }
   }
+
+  async function logout(){
+    await db.auth.signOut();
+    await checkSession();
+  }
+
+  const EYE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+  const EYE_OFF_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.8 21.8 0 0 1 5.06-6.06M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a21.8 21.8 0 0 1-3.22 4.44M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+
+  function togglePasswordVisibility(inputId, btn){
+    const input = document.getElementById(inputId);
+    const showing = input.type === 'text';
+    input.type = showing ? 'password' : 'text';
+    btn.innerHTML = showing ? EYE_ICON : EYE_OFF_ICON;
+    btn.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
+  }
+  document.getElementById('login-password-toggle').innerHTML = EYE_ICON;
+  document.getElementById('signup-password-toggle').innerHTML = EYE_ICON;
 
   function escapeHtml(str){
     const d = document.createElement('div');
@@ -790,13 +1155,6 @@
     ).join('');
     selectedStance = null;
     validateForm();
-  }
-
-  function toggleAnon(){
-    const checked = document.getElementById('anon-check').checked;
-    const nameField = document.getElementById('author-name');
-    nameField.disabled = checked;
-    if (checked) nameField.value = '';
   }
 
   function selectStance(stance){
@@ -864,16 +1222,20 @@
       showError('Check your stance selection and word count before submitting.');
       return;
     }
-    requirePhone((phone) => doSubmitEssay(phone));
+    if (!currentUser) {
+      openAuthModal('login', doSubmitEssay);
+      return;
+    }
+    doSubmitEssay();
   }
 
-  async function doSubmitEssay(phone){
+  async function doSubmitEssay(){
     const essayText = document.getElementById('essay').value.trim();
     const count = wordCount(essayText);
 
     const anon = document.getElementById('anon-check').checked;
-    const nameRaw = document.getElementById('author-name').value.trim();
-    const author = anon ? 'Anonymous' : (nameRaw || 'Anonymous');
+    const displayName = (currentProfile && currentProfile.name) || currentUser.email;
+    const author = anon ? 'Anonymous' : displayName;
 
     const btn = document.getElementById('submit-btn');
     btn.disabled = true;
@@ -890,7 +1252,7 @@
           author: author,
           anonymous: anon,
           votes: 0,
-          phone_number: phone
+          user_id: currentUser.id
         }])
         .select()
         .single();
@@ -904,9 +1266,7 @@
       confirmBox.classList.add('show');
 
       document.getElementById('essay').value = '';
-      document.getElementById('author-name').value = '';
       document.getElementById('anon-check').checked = false;
-      toggleAnon();
       selectedStance = null;
       document.querySelectorAll('.stance-pill').forEach(b => b.classList.remove('selected'));
       updateMeter();
@@ -922,7 +1282,7 @@
   function castVote(entryId, currentVotes) {
     const myVotes = getMyVotes();
     if (myVotes.length >= 2) return;
-    requirePhone(() => doCastVote(entryId, currentVotes));
+    doCastVote(entryId, currentVotes);
   }
 
   async function doCastVote(entryId, currentVotes) {
@@ -995,19 +1355,41 @@
       }
 
       const mySubId = getMySubmissionId();
-      const myPhone = getMyPhone();
       const myVotes = getMyVotes();
       const hasReachedLimit = myVotes.length >= 2;
+
+      // Pull every comment for the essays on screen in one query, then
+      // group them by essay so each case-file can render its own thread.
+      const essayIds = shown.map(e => e.id);
+      let commentsByEssay = {};
+      try {
+        const { data: comments, error: cErr } = await db
+          .from('comments')
+          .select('*')
+          .in('essay_id', essayIds)
+          .order('created_at', { ascending: true });
+        if (!cErr && comments) {
+          comments.forEach(c => {
+            if (!commentsByEssay[c.essay_id]) commentsByEssay[c.essay_id] = [];
+            commentsByEssay[c.essay_id].push(c);
+          });
+        }
+      } catch (cErr) {
+        console.error('Error loading comments:', cErr);
+      }
 
       groupsEl.innerHTML = Object.keys(groups).map(stance => `
         <div class="stance-group">
           <div class="stance-group-title">${escapeHtml(stance)}</div>
           ${groups[stance].map(e => {
 
-            // An essay counts as "mine" if it matches my saved phone number
-            // (works across sessions/devices) or, as a fallback for older
-            // rows with no phone on file, my locally-remembered submission id.
-            let isMine = (myPhone && e.phone_number && e.phone_number === myPhone) || (e.id == mySubId);
+            // An essay counts as "mine" if it's tied to my logged-in account,
+            // or, as a fallback for anonymous/older rows, my locally
+            // remembered submission id from this browser.
+            let isMine = (currentUser && e.user_id && e.user_id === currentUser.id) || (e.id == mySubId);
+
+            const essayComments = commentsByEssay[e.id] || [];
+            const commentsBadge = `<span class="case-file-comments">${essayComments.length} comment${essayComments.length === 1 ? '' : 's'}</span> · `;
 
             let btnHtml = '';
             let votesBadge = '';
@@ -1027,18 +1409,45 @@
               }
             }
 
+            const commentsHtml = essayComments.length
+              ? essayComments.map(c => `
+                <div class="comment-item">
+                  <span class="comment-author">${escapeHtml(c.author_name)}</span>
+                  <span class="comment-time">${new Date(c.created_at).toLocaleString()}</span>
+                  <div class="comment-body">${escapeHtml(c.body)}</div>
+                </div>
+              `).join('')
+              : '<div class="no-comments">No comments yet.</div>';
+
+            const commentFormHtml = currentUser
+              ? `
+                <div class="comment-form">
+                  <textarea id="comment-input-${e.id}" placeholder="Add a comment…"></textarea>
+                  <button onclick="event.stopPropagation(); postComment('${e.id}')">Post</button>
+                </div>
+              `
+              : `<div class="comment-login-hint">
+                  <a onclick="event.stopPropagation(); openAuthModal('login')">Log in</a> to comment.
+                </div>`;
+
             return `
             <div class="case-file" onclick="this.classList.toggle('open')">
               <div class="case-file-top">
                 <div class="case-file-left">
                   <span class="case-file-author">${escapeHtml(e.author)}</span>
                   <span class="case-file-meta">
-                    ${votesBadge}${e.word_count} words · ${new Date(e.created_at).toLocaleString()}
+                    ${votesBadge}${commentsBadge}${e.word_count} words · ${new Date(e.created_at).toLocaleString()}
                   </span>
                 </div>
                 ${btnHtml}
               </div>
-              <div class="case-file-body">${escapeHtml(e.essay)}</div>
+              <div class="case-file-body">${escapeHtml(e.essay)}
+                <div class="comments-wrap" onclick="event.stopPropagation();">
+                  <div class="comments-title">Comments (${essayComments.length})</div>
+                  <div id="comments-list-${e.id}">${commentsHtml}</div>
+                  ${commentFormHtml}
+                </div>
+              </div>
             </div>
             `;
           }).join('')}
@@ -1048,6 +1457,31 @@
     } catch (e) {
       console.error('Error loading log:', e);
       loadingEl.textContent = 'Could not load the entry log — please verify database connectivity and try again.';
+    }
+  }
+
+  async function postComment(essayId){
+    if (!currentUser) {
+      openAuthModal('login', () => postComment(essayId));
+      return;
+    }
+    const textarea = document.getElementById(`comment-input-${essayId}`);
+    const body = textarea.value.trim();
+    if (!body) return;
+
+    const displayName = (currentProfile && currentProfile.name) || currentUser.email;
+
+    try {
+      await db.from('comments').insert([{
+        essay_id: essayId,
+        user_id: currentUser.id,
+        author_name: displayName,
+        body: body
+      }]);
+      loadLog();
+    } catch (e) {
+      console.error('Comment error:', e);
+      alert('Could not post your comment. Check your connection and try again.');
     }
   }
 
@@ -1063,6 +1497,7 @@
   }
 
   loadConfig();
+  checkSession();
 </script>
 </body>
 </html>
