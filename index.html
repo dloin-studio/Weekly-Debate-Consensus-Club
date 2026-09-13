@@ -749,7 +749,7 @@
       <button onclick="openAuthModal('login')">Log in / Sign up</button>
     </div>
 
-    
+    <!--
     <div id="submit-form-wrap" style="display:none;">
       <div class="section-label">01 — Your details</div>
       <div class="field">
@@ -1043,27 +1043,30 @@
     btn.textContent = 'Creating…';
 
     try {
-      const { data, error } = await db.auth.signUp({ email, password });
+      // Profile metadata rides along on the auth user (raw_user_meta_data).
+      // A database trigger (see migration.sql) reads it and creates the
+      // matching `profiles` row automatically — this works whether or not
+      // "confirm email" is on, unlike a client-side insert that only ran
+      // when a session existed immediately after signUp().
+      const { data, error } = await db.auth.signUp({
+        email, password,
+        options: {
+          data: {
+            name: name,
+            age: age ? parseInt(age, 10) : null,
+            grade: grade || null,
+            phone: phone || null
+          }
+        }
+      });
       if (error) throw error;
 
-      // If email confirmation is required, there's no session yet —
-      // the profile gets created the first time they log in successfully.
       if (!data.session) {
         okEl.textContent = 'Account created — check your email to confirm it, then log in.';
         okEl.classList.add('show');
         switchAuthTab('login');
         return;
       }
-
-      const user = data.session.user;
-
-      await db.from('profiles').insert([{
-        id: user.id,
-        name: name,
-        age: age ? parseInt(age, 10) : null,
-        grade: grade || null,
-        phone: phone || null
-      }]);
 
       document.getElementById('auth-modal-backdrop').classList.remove('show');
       document.getElementById('signup-form').reset();
@@ -1246,6 +1249,7 @@
       const { data, error } = await db
         .from('submissions')
         .insert([{
+          week_id: config.id,
           week_label: config.weekLabel,
           stance: selectedStance,
           essay: essayText,
@@ -1324,8 +1328,10 @@
 
       loadingEl.style.display = 'none';
 
-      const current = (entries || []).filter(e => e.week_label === config.weekLabel);
-      const shown = current.length ? current : (entries || []);
+      // Only ever show entries tied to the currently active week — once a
+      // week ends its entries drop out of this log (they still live in the
+      // database for admin/historical purposes, just not here).
+      const shown = (entries || []).filter(e => e.week_id === config.id);
 
       if (!shown.length) {
         groupsEl.innerHTML = '<div class="empty-log">No entries yet for ' + escapeHtml(config.weekLabel) + '. The log fills in as the writing window progresses.</div>';
