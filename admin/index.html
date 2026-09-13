@@ -146,6 +146,11 @@
   .btn-small.danger:hover { background: var(--against-color-soft); }
   
   .loading-line{ font-family:'Space Grotesk', sans-serif; font-size:12px; color: var(--ink-faint); }
+  .entries-panel{ margin-top: 12px; border-top: 1px solid var(--rule); padding-top: 12px; }
+  .entry-row{ padding: 8px 0; border-bottom: 1px solid var(--rule); }
+  .entry-row:last-child{ border-bottom: none; }
+  .entry-meta{ font-family:'Space Grotesk', sans-serif; font-size: 11px; color: var(--ink-soft); margin-bottom: 4px; }
+  .entry-essay{ font-size: 13.5px; line-height: 1.5; white-space: pre-wrap; }
   #admin-view{ display:none; }
 </style>
 </head>
@@ -344,13 +349,62 @@
   }
 
   async function deleteWeek(id, label) {
-    if (!confirm(`Are you sure you want to delete ${label}? All related data for this week will be removed.`)) return;
+    // Submissions reference their week (week_id, FK with ON DELETE RESTRICT —
+    // see migration.sql), so a week that has entries can't be hard-deleted:
+    // that data is kept for history on purpose. Check first and explain
+    // clearly instead of letting the delete fail with a raw DB error.
+    const { count, error: countErr } = await db
+      .from('submissions')
+      .select('id', { count: 'exact', head: true })
+      .eq('week_id', id);
+
+    if (!countErr && count > 0) {
+      alert(`Can't delete ${label} — it has ${count} submission${count === 1 ? '' : 's'} on record. Submissions are kept for history, so set a different week active instead of deleting this one.`);
+      return;
+    }
+
+    if (!confirm(`Delete ${label}? It has no submissions, so this is permanent.`)) return;
     try {
-      await db.from('weeks').delete().eq('id', id);
+      const { error } = await db.from('weeks').delete().eq('id', id);
+      if (error) throw error;
       loadHistory();
     } catch (e) {
       console.error('Delete error:', e);
       alert('Could not delete week.');
+    }
+  }
+
+  // Fetches a week's submissions on demand and toggles them open inline —
+  // this is how the admin reviews a past (inactive) week's entries.
+  async function toggleEntries(id) {
+    const panel = document.getElementById('entries-' + id);
+    if (!panel) return;
+    const isOpen = panel.style.display === 'block';
+    if (isOpen) { panel.style.display = 'none'; return; }
+
+    panel.style.display = 'block';
+    panel.innerHTML = '<div class="loading-line">Loading entries…</div>';
+    try {
+      const { data, error } = await db
+        .from('submissions')
+        .select('*')
+        .eq('week_id', id)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+
+      if (!data || !data.length) {
+        panel.innerHTML = '<div class="loading-line">No submissions for this week.</div>';
+        return;
+      }
+      panel.innerHTML = data.map(s => `
+        <div class="entry-row">
+          <div class="entry-meta">${escapeHtml(s.stance)} · ${escapeHtml(s.anonymous ? 'Anonymous' : s.author)} · ${s.word_count} words · ${s.votes || 0} votes · ${new Date(s.created_at).toLocaleString()}</div>
+          <div class="entry-essay">${escapeHtml(s.essay)}</div>
+        </div>
+      `).join('');
+    } catch (e) {
+      console.error('Load entries error:', e);
+      panel.innerHTML = '<div class="loading-line">Could not load entries.</div>';
     }
   }
 
@@ -374,6 +428,12 @@
         return;
       }
 
+      // One query for every week's submission count, grouped client-side,
+      // instead of a separate round trip per row.
+      const counts = {};
+      const { data: allSubs } = await db.from('submissions').select('week_id');
+      (allSubs || []).forEach(s => { if (s.week_id) counts[s.week_id] = (counts[s.week_id] || 0) + 1; });
+
       listEl.innerHTML = data.map((w) => `
         <div class="week-row">
           <div class="label">${escapeHtml(w.week_label)}${w.is_active ? ' — LIVE NOW' : ''}</div>
@@ -387,10 +447,14 @@
             <button class="btn-small ${w.is_active ? 'active-state' : ''}" onclick="setActive('${w.id}')" ${w.is_active ? 'disabled' : ''}>
               ${w.is_active ? 'Currently Active' : 'Set as Active Week'}
             </button>
+            <button class="btn-small" onclick="toggleEntries('${w.id}')">
+              View entries (${counts[w.id] || 0})
+            </button>
             <button class="btn-small danger" onclick="deleteWeek('${w.id}', '${escapeHtml(w.week_label).replace(/'/g, "\\'")}')">
               Delete
             </button>
           </div>
+          <div class="entries-panel" id="entries-${w.id}" style="display:none;"></div>
         </div>
       `).join('');
     } catch (e) {
